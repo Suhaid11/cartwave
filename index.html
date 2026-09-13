@@ -42,10 +42,13 @@
 
 
 <!-- ═══════════════════════════════════════════════════════════════════
-     §1  HOME — Full-bleed Cinematic Hero with Video Background
+     §1  HOME — Full-bleed Cinematic Hero with Scoped Three.js Canvas
      ═══════════════════════════════════════════════════════════════════ -->
 <section class="section hero" id="home" data-theme="dark">
-  <!-- Background video (Pexels — free license, no attribution required) -->
+  <!-- Three.js Background Canvas — Scoped strictly to Hero -->
+  <canvas id="hero-three-canvas" aria-hidden="true"></canvas>
+
+  <!-- Background video — FALLBACK only (shown when Three.js can't run) -->
   <!-- Source: https://www.pexels.com/video/4320605/ by cottonbro studio -->
   <!-- License: Pexels License — free for personal & commercial use      -->
   <div class="hero__video-wrap" id="hero-video-wrap">
@@ -77,7 +80,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
     </div>
     <div class="hero__badge-text">
-      <strong>What's Inside</strong>
+      <strong><span class="spark-dot"></span> What's Inside</strong>
       <span>11 handpicked objects · Free delivery over ₹1,999</span>
     </div>
   </div>
@@ -91,10 +94,18 @@
 
 
 <!-- ═══════════════════════════════════════════════════════════════════
-     §2  SHOP — Curated Luxury Collection with High-Res Photography
+     §2  SHOP — Curated Luxury Gallery with Architectural Aura
      ═══════════════════════════════════════════════════════════════════ -->
 <section class="section shop" id="shop" data-theme="dark">
+  <!-- Subtle gallery ambient lighting & architectural lattice -->
+  <div class="shop__ambient-glow" aria-hidden="true"></div>
+  <div class="shop__lattice-overlay" aria-hidden="true"></div>
+
   <div class="shop__header">
+    <div class="shop__badge-pill">
+      <span class="spark-dot"></span>
+      <span>Curated Collection · Handpicked 2026</span>
+    </div>
     <h2 class="shop__title">The <span class="accent">Collection</span></h2>
     <p style="color: var(--clr-text-secondary); margin-top: var(--sp-sm);">Every object tells a story. Filter by category and find your signature piece.</p>
   </div>
@@ -108,9 +119,16 @@
 
 
 <!-- ═══════════════════════════════════════════════════════════════════
-     §3  FEATURED PRODUCT — Seamless Floating Levitation 3D Model
+     §3  FEATURED PRODUCT — Acoustic Chamber & Eclipse 3D Stage
      ═══════════════════════════════════════════════════════════════════ -->
 <section class="section spotlight" id="spotlight" data-theme="dark">
+  <!-- Concentric acoustic eclipse breathing rings -->
+  <div class="spotlight__acoustic-chamber" aria-hidden="true">
+    <div class="spotlight__acoustic-ring ring-1"></div>
+    <div class="spotlight__acoustic-ring ring-2"></div>
+    <div class="spotlight__acoustic-ring ring-3"></div>
+  </div>
+
   <div class="spotlight__inner" id="spotlight-inner">
     <!-- Rendered by JS: Floating levitating 3D model with orbital glow and spec badges -->
   </div>
@@ -161,10 +179,14 @@
 <!-- ═══════════════════════════════════════════════════════════════════
      §5  CHECKOUT — Clean, Minimal, Light Background
      ═══════════════════════════════════════════════════════════════════ -->
-<section class="section checkout" id="checkout" data-theme="light">
+<section class="section checkout" id="checkout" data-theme="dark">
   <div class="checkout__inner" id="checkout-inner">
     <!-- Form Column -->
     <div class="checkout__form-wrap" id="checkout-form-wrap">
+      <div class="checkout__security-badge">
+        <span class="spark-dot"></span>
+        <span>256-Bit SSL Encrypted Obsidian Vault</span>
+      </div>
       <h2 class="checkout__title">Complete your <span class="accent">order</span></h2>
       <p class="checkout__subtitle">You're just one step away from something special.</p>
 
@@ -276,6 +298,8 @@
 
 <!-- Scripts -->
 <script src="products.js"></script>
+<script src="assets/three.min.js"></script>
+<script src="three-bg.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

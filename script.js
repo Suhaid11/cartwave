@@ -156,7 +156,7 @@ function renderProductGrid() {
     <article class="product-card" data-id="${p.id}">
       <div class="product-card__img-wrap">
         <img class="product-card__img" src="${p.image}" alt="${p.name}" loading="lazy">
-        <span class="product-card__badge">${p.badge}</span>
+        <span class="product-card__badge"><span class="spark-dot"></span>${p.badge}</span>
       </div>
       <div class="product-card__body">
         <span class="product-card__category">${p.category}</span>
@@ -175,6 +175,11 @@ function renderProductGrid() {
       </div>
     </article>
   `).join('');
+
+  // Attach ThreeUI 3D tilt and specular sheen
+  if (typeof initThreeUICardTilt === 'function') {
+    initThreeUICardTilt();
+  }
 }
 
 
@@ -207,19 +212,19 @@ function renderSpotlight() {
       <!-- Floating Spec Badges organically orbiting in 3D -->
       <div class="spotlight__specs-orbit">
         <div class="spec-badge">
-          <span class="spec-badge__value">${p.specs.driver || '40 mm'}</span>
+          <span class="spec-badge__value"><span class="spark-dot"></span>${p.specs.driver || '40 mm'}</span>
           Beryllium Driver
         </div>
         <div class="spec-badge">
-          <span class="spec-badge__value">${p.specs.battery || '38 Hours'}</span>
+          <span class="spec-badge__value"><span class="spark-dot"></span>${p.specs.battery || '38 Hours'}</span>
           Battery with ANC
         </div>
         <div class="spec-badge">
-          <span class="spec-badge__value">${p.specs.anc || 'Adaptive ANC'}</span>
+          <span class="spec-badge__value"><span class="spark-dot"></span>${p.specs.anc || 'Adaptive ANC'}</span>
           Hybrid Silence
         </div>
         <div class="spec-badge">
-          <span class="spec-badge__value">${p.specs.weight || '248 g'}</span>
+          <span class="spec-badge__value"><span class="spark-dot"></span>${p.specs.weight || '248 g'}</span>
           Featherlight Fit
         </div>
       </div>
@@ -228,6 +233,22 @@ function renderSpotlight() {
       <div class="spotlight__drag-hint">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
         <span>Interactive 3D · Smooth Levitation · Drag to Orbit</span>
+      </div>
+
+      <!-- Acoustic Soundwave Visualizer Strip -->
+      <div class="spotlight__soundwave" aria-label="Acoustic Frequency Spectrum">
+        <div class="soundwave-bar" style="--h: 35%; --delay: 0.1s"></div>
+        <div class="soundwave-bar" style="--h: 60%; --delay: 0.3s"></div>
+        <div class="soundwave-bar" style="--h: 90%; --delay: 0.15s"></div>
+        <div class="soundwave-bar" style="--h: 50%; --delay: 0.4s"></div>
+        <div class="soundwave-bar" style="--h: 80%; --delay: 0.25s"></div>
+        <div class="soundwave-bar" style="--h: 100%; --delay: 0.05s"></div>
+        <div class="soundwave-bar" style="--h: 70%; --delay: 0.35s"></div>
+        <div class="soundwave-bar" style="--h: 85%; --delay: 0.2s"></div>
+        <div class="soundwave-bar" style="--h: 55%; --delay: 0.45s"></div>
+        <div class="soundwave-bar" style="--h: 40%; --delay: 0.1s"></div>
+        <div class="soundwave-bar" style="--h: 75%; --delay: 0.3s"></div>
+        <div class="soundwave-bar" style="--h: 95%; --delay: 0.15s"></div>
       </div>
     </div>
 
@@ -827,7 +848,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Save current section on scroll
   let scrollSaveTimer;
-  document.addEventListener('scroll', () => {
+   document.addEventListener('scroll', () => {
     clearTimeout(scrollSaveTimer);
     scrollSaveTimer = setTimeout(() => {
       const sections = $$('.section');
@@ -841,4 +862,135 @@ document.addEventListener('DOMContentLoaded', () => {
       try { sessionStorage.setItem('cartwave_section', visible); } catch(e) {}
     }, 200);
   }, { passive: true });
+
+
+  /* ═══════════════════════════════════════════════════════════════════
+     THREE.JS HERO BACKGROUND — Scoped to Hero + Performance Observer
+     ═══════════════════════════════════════════════════════════════════ */
+  if (typeof initThreeBG === 'function') {
+    const bgStarted = initThreeBG();
+    if (bgStarted) {
+      const heroEl = document.getElementById('home');
+      if (heroEl && 'IntersectionObserver' in window) {
+        const heroObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              if (typeof resumeThreeBG === 'function') resumeThreeBG();
+            } else {
+              if (typeof pauseThreeBG === 'function') pauseThreeBG();
+            }
+          });
+        }, { threshold: 0.05 });
+        heroObserver.observe(heroEl);
+      }
+    }
+  }
+
+  /* ── ThreeUI Interactions Initialization ── */
+  initThreeUICardTilt();
+  initAmbientCursorSpotlight();
 });
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   ThreeUI — 3D Holographic Card Tilt & Specular Glare Controller
+   ═══════════════════════════════════════════════════════════════════ */
+function initThreeUICardTilt() {
+  if (window.matchMedia('(pointer: coarse)').matches) return; // Touch screens don't tilt
+
+  const cards = document.querySelectorAll('.product-card, .hero__badge');
+  cards.forEach(card => {
+    if (card._tiltAttached) return;
+    card._tiltAttached = true;
+
+    let bounds = null;
+    const maxTilt = 11; // degrees
+
+    function onMouseEnter() {
+      bounds = card.getBoundingClientRect();
+      card.style.setProperty('--glare-opacity', '1');
+    }
+
+    function onMouseMove(e) {
+      if (!bounds) bounds = card.getBoundingClientRect();
+      const x = e.clientX - bounds.left;
+      const y = e.clientY - bounds.top;
+      
+      const width = bounds.width;
+      const height = bounds.height;
+      
+      const normX = Math.max(-1, Math.min(1, (x / width) * 2 - 1));
+      const normY = Math.max(-1, Math.min(1, (y / height) * 2 - 1));
+
+      // Calculate tilt angles (rotateX is driven by Y, rotateY is driven by X)
+      const tiltX = (-normY * maxTilt).toFixed(2);
+      const tiltY = (normX * maxTilt).toFixed(2);
+
+      // Percentage for radial glare
+      const glareX = ((x / width) * 100).toFixed(1) + '%';
+      const glareY = ((y / height) * 100).toFixed(1) + '%';
+
+      card.style.setProperty('--tilt-x', `${tiltX}deg`);
+      card.style.setProperty('--tilt-y', `${tiltY}deg`);
+      card.style.setProperty('--glare-x', glareX);
+      card.style.setProperty('--glare-y', glareY);
+      card.style.setProperty('--glare-opacity', '1');
+    }
+
+    function onMouseLeave() {
+      bounds = null;
+      card.style.setProperty('--tilt-x', '0deg');
+      card.style.setProperty('--tilt-y', '0deg');
+      card.style.setProperty('--glare-opacity', '0');
+    }
+
+    card.addEventListener('mouseenter', onMouseEnter, { passive: true });
+    card.addEventListener('mousemove', onMouseMove, { passive: true });
+    card.addEventListener('mouseleave', onMouseLeave, { passive: true });
+  });
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   ThreeUI — Interactive Ambient Spotlight Cursor Field
+   ═══════════════════════════════════════════════════════════════════ */
+function initAmbientCursorSpotlight() {
+  if (window.matchMedia('(pointer: coarse)').matches) return; // skip on touch devices
+
+  let spotlight = document.getElementById('ambient-cursor-spotlight');
+  if (!spotlight) {
+    spotlight = document.createElement('div');
+    spotlight.id = 'ambient-cursor-spotlight';
+    spotlight.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(spotlight);
+  }
+
+  let mouseX = window.innerWidth / 2;
+  let mouseY = window.innerHeight / 2;
+  let currentX = mouseX;
+  let currentY = mouseY;
+  let active = false;
+
+  window.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    if (!active) {
+      active = true;
+      document.body.classList.add('cursor-active');
+    }
+  }, { passive: true });
+
+  window.addEventListener('mouseleave', () => {
+    active = false;
+    document.body.classList.remove('cursor-active');
+  });
+
+  // Smooth lerp animation loop
+  function loop() {
+    currentX += (mouseX - currentX) * 0.12;
+    currentY += (mouseY - currentY) * 0.12;
+    spotlight.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}
